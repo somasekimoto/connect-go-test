@@ -11,7 +11,7 @@ import (
 
 func server() http.Handler {
 	mux := http.NewServeMux()
-	mux.Handle(greetv1connect.NewGreetServiceHandler(&GreetServer{}))
+	mux.Handle(greetv1connect.NewGreetServiceHandler(nil))
 	return mux
 }
 
