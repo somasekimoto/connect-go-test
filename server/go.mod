@@ -1,4 +1,4 @@
-module github.com/Hirochon/connect-go-test/server
+module github.com/somasekimoto/connect-go-test/server
 
 go 1.20
 
