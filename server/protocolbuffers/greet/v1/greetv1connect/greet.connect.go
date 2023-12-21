@@ -35,11 +35,23 @@ const (
 const (
 	// GreetServiceGreetUnaryProcedure is the fully-qualified name of the GreetService's GreetUnary RPC.
 	GreetServiceGreetUnaryProcedure = "/protocolbuffers.greet.v1.GreetService/GreetUnary"
+	// GreetServiceGreetServerStreamProcedure is the fully-qualified name of the GreetService's
+	// GreetServerStream RPC.
+	GreetServiceGreetServerStreamProcedure = "/protocolbuffers.greet.v1.GreetService/GreetServerStream"
+	// GreetServiceGreetClientStreamProcedure is the fully-qualified name of the GreetService's
+	// GreetClientStream RPC.
+	GreetServiceGreetClientStreamProcedure = "/protocolbuffers.greet.v1.GreetService/GreetClientStream"
+	// GreetServiceGreetBidiStreamProcedure is the fully-qualified name of the GreetService's
+	// GreetBidiStream RPC.
+	GreetServiceGreetBidiStreamProcedure = "/protocolbuffers.greet.v1.GreetService/GreetBidiStream"
 )
 
 // GreetServiceClient is a client for the protocolbuffers.greet.v1.GreetService service.
 type GreetServiceClient interface {
 	GreetUnary(context.Context, *connect_go.Request[v1.GreetUnaryRequest]) (*connect_go.Response[v1.GreetUnaryResponse], error)
+	GreetServerStream(context.Context, *connect_go.Request[v1.GreetServerStreamRequest]) (*connect_go.ServerStreamForClient[v1.GreetServerStreamResponse], error)
+	GreetClientStream(context.Context) *connect_go.ClientStreamForClient[v1.GreetClientStreamRequest, v1.GreetClientStreamResponse]
+	GreetBidiStream(context.Context) *connect_go.BidiStreamForClient[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse]
 }
 
 // NewGreetServiceClient constructs a client for the protocolbuffers.greet.v1.GreetService service.
@@ -57,12 +69,30 @@ func NewGreetServiceClient(httpClient connect_go.HTTPClient, baseURL string, opt
 			baseURL+GreetServiceGreetUnaryProcedure,
 			opts...,
 		),
+		greetServerStream: connect_go.NewClient[v1.GreetServerStreamRequest, v1.GreetServerStreamResponse](
+			httpClient,
+			baseURL+GreetServiceGreetServerStreamProcedure,
+			opts...,
+		),
+		greetClientStream: connect_go.NewClient[v1.GreetClientStreamRequest, v1.GreetClientStreamResponse](
+			httpClient,
+			baseURL+GreetServiceGreetClientStreamProcedure,
+			opts...,
+		),
+		greetBidiStream: connect_go.NewClient[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse](
+			httpClient,
+			baseURL+GreetServiceGreetBidiStreamProcedure,
+			opts...,
+		),
 	}
 }
 
 // greetServiceClient implements GreetServiceClient.
 type greetServiceClient struct {
-	greetUnary *connect_go.Client[v1.GreetUnaryRequest, v1.GreetUnaryResponse]
+	greetUnary        *connect_go.Client[v1.GreetUnaryRequest, v1.GreetUnaryResponse]
+	greetServerStream *connect_go.Client[v1.GreetServerStreamRequest, v1.GreetServerStreamResponse]
+	greetClientStream *connect_go.Client[v1.GreetClientStreamRequest, v1.GreetClientStreamResponse]
+	greetBidiStream   *connect_go.Client[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse]
 }
 
 // GreetUnary calls protocolbuffers.greet.v1.GreetService.GreetUnary.
@@ -70,9 +100,27 @@ func (c *greetServiceClient) GreetUnary(ctx context.Context, req *connect_go.Req
 	return c.greetUnary.CallUnary(ctx, req)
 }
 
+// GreetServerStream calls protocolbuffers.greet.v1.GreetService.GreetServerStream.
+func (c *greetServiceClient) GreetServerStream(ctx context.Context, req *connect_go.Request[v1.GreetServerStreamRequest]) (*connect_go.ServerStreamForClient[v1.GreetServerStreamResponse], error) {
+	return c.greetServerStream.CallServerStream(ctx, req)
+}
+
+// GreetClientStream calls protocolbuffers.greet.v1.GreetService.GreetClientStream.
+func (c *greetServiceClient) GreetClientStream(ctx context.Context) *connect_go.ClientStreamForClient[v1.GreetClientStreamRequest, v1.GreetClientStreamResponse] {
+	return c.greetClientStream.CallClientStream(ctx)
+}
+
+// GreetBidiStream calls protocolbuffers.greet.v1.GreetService.GreetBidiStream.
+func (c *greetServiceClient) GreetBidiStream(ctx context.Context) *connect_go.BidiStreamForClient[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse] {
+	return c.greetBidiStream.CallBidiStream(ctx)
+}
+
 // GreetServiceHandler is an implementation of the protocolbuffers.greet.v1.GreetService service.
 type GreetServiceHandler interface {
 	GreetUnary(context.Context, *connect_go.Request[v1.GreetUnaryRequest]) (*connect_go.Response[v1.GreetUnaryResponse], error)
+	GreetServerStream(context.Context, *connect_go.Request[v1.GreetServerStreamRequest], *connect_go.ServerStream[v1.GreetServerStreamResponse]) error
+	GreetClientStream(context.Context, *connect_go.ClientStream[v1.GreetClientStreamRequest]) (*connect_go.Response[v1.GreetClientStreamResponse], error)
+	GreetBidiStream(context.Context, *connect_go.BidiStream[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse]) error
 }
 
 // NewGreetServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -86,10 +134,31 @@ func NewGreetServiceHandler(svc GreetServiceHandler, opts ...connect_go.HandlerO
 		svc.GreetUnary,
 		opts...,
 	)
+	greetServiceGreetServerStreamHandler := connect_go.NewServerStreamHandler(
+		GreetServiceGreetServerStreamProcedure,
+		svc.GreetServerStream,
+		opts...,
+	)
+	greetServiceGreetClientStreamHandler := connect_go.NewClientStreamHandler(
+		GreetServiceGreetClientStreamProcedure,
+		svc.GreetClientStream,
+		opts...,
+	)
+	greetServiceGreetBidiStreamHandler := connect_go.NewBidiStreamHandler(
+		GreetServiceGreetBidiStreamProcedure,
+		svc.GreetBidiStream,
+		opts...,
+	)
 	return "/protocolbuffers.greet.v1.GreetService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case GreetServiceGreetUnaryProcedure:
 			greetServiceGreetUnaryHandler.ServeHTTP(w, r)
+		case GreetServiceGreetServerStreamProcedure:
+			greetServiceGreetServerStreamHandler.ServeHTTP(w, r)
+		case GreetServiceGreetClientStreamProcedure:
+			greetServiceGreetClientStreamHandler.ServeHTTP(w, r)
+		case GreetServiceGreetBidiStreamProcedure:
+			greetServiceGreetBidiStreamHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -101,4 +170,16 @@ type UnimplementedGreetServiceHandler struct{}
 
 func (UnimplementedGreetServiceHandler) GreetUnary(context.Context, *connect_go.Request[v1.GreetUnaryRequest]) (*connect_go.Response[v1.GreetUnaryResponse], error) {
 	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("protocolbuffers.greet.v1.GreetService.GreetUnary is not implemented"))
+}
+
+func (UnimplementedGreetServiceHandler) GreetServerStream(context.Context, *connect_go.Request[v1.GreetServerStreamRequest], *connect_go.ServerStream[v1.GreetServerStreamResponse]) error {
+	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("protocolbuffers.greet.v1.GreetService.GreetServerStream is not implemented"))
+}
+
+func (UnimplementedGreetServiceHandler) GreetClientStream(context.Context, *connect_go.ClientStream[v1.GreetClientStreamRequest]) (*connect_go.Response[v1.GreetClientStreamResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("protocolbuffers.greet.v1.GreetService.GreetClientStream is not implemented"))
+}
+
+func (UnimplementedGreetServiceHandler) GreetBidiStream(context.Context, *connect_go.BidiStream[v1.GreetBidiStreamRequest, v1.GreetBidiStreamResponse]) error {
+	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("protocolbuffers.greet.v1.GreetService.GreetBidiStream is not implemented"))
 }
