@@ -1,9 +1,13 @@
 syntax = "proto3";
+
 package protocolbuffers.greet.v1;
+
 option go_package = "github.com/somasekimoto/connect-go-test/server/protocolbuffers/greet/v1;greetv1";
+
 message GreetUnaryRequest {
   string name = 1;
 }
+
 message GreetUnaryResponse {
   string greeting = 1;
 }
@@ -16,25 +20,8 @@ message GreetServerStreamResponse {
   string greeting = 1;
 }
 
-message GreetClientStreamRequest {
-  string name = 1;
-}
-
-message GreetClientStreamResponse {
-  string greeting = 1;
-}
-
-message GreetBidiStreamRequest {
-  string name = 1;
-}
-
-message GreetBidiStreamResponse {
-  string greeting = 1;
-}
-
 service GreetService {
   rpc GreetUnary(GreetUnaryRequest) returns (GreetUnaryResponse) {}
   rpc GreetServerStream(GreetServerStreamRequest) returns (stream GreetServerStreamResponse) {}
-  rpc GreetClientStream(stream GreetClientStreamRequest) returns (GreetClientStreamResponse) {}
-  rpc GreetBidiStream(stream GreetBidiStreamRequest) returns (stream GreetBidiStreamResponse) {}
+
 }
